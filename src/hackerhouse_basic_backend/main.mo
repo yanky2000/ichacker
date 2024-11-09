@@ -11,10 +11,7 @@ import Buffer "mo:base/Buffer";
 
 actor {
     let userProfileMap = HashMap.HashMap<Principal, Text>(5, Principal.equal, Principal.hash);
-    // let userResultsMap = HashMap.HashMap<Principal, Text>(5, Principal.equal, Principal.hash);
-
-//   let userResultsMap : HashMap.HashMap<Principal, [Text]> = HashMap.HashMap<Principal, Buffer.Buffer<Text>>(0, Principal.equal, Principal.hash);
- let userResultsMap : HashMap.HashMap<Principal, Buffer.Buffer<Text>> = HashMap.HashMap<Principal, Buffer.Buffer<Text>>(0, Principal.equal, Principal.hash);
+    let userResultsMap : HashMap.HashMap<Principal, Buffer.Buffer<Text>> = HashMap.HashMap<Principal, Buffer.Buffer<Text>>(0, Principal.equal, Principal.hash);
 
     public query ({ caller }) func getUserProfile() : async Result.Result<{ id : Principal; name : Text }, Text> {
 
@@ -40,25 +37,12 @@ actor {
 
 
     public shared ({ caller }) func addUserResult(result : Text) : async Result.Result<{ id : Principal; results : [Text] }, Text> {
-                // let result = userResultsMap.put(caller, result);
-// let existingMessages : ?[Text] = userMessages.get(user);
-
-        // Add the message to the existing array or start a new array
-    //     let updatedMessages : [Text] = switch (existingMessages) {
-    //         case (null) { [message] };                  // Start a new array
-    //         case (?messages) { messages # [message] };  // Append to the existing array
-    //     };
-
-    //     userMessages.put(user, updatedMessages);
-    // }
-// public shared ({ caller }) func addUserResult(result : Text) : async Result.Result<{ id : Principal; results : [Text] }, Text> {
+               
         // Retrieve the existing results for the caller, if any
         let existingResults = userResultsMap.get(caller);
 
         switch (existingResults) {
             case (null) {
-                // No buffer exists for the caller, so create a new one and add the result
-                // userResultsMap.add(caller, result);
                 let buffer = Buffer.Buffer<Text>(0); // Initialize an empty buffer
                 buffer.add(result); // Add the result to the buffer
                 userResultsMap.put(caller, buffer);  // Store the buffer in the map
@@ -66,24 +50,30 @@ actor {
             case (?buffer) {
                 // A buffer already exists, so just add the result to it
                 buffer.add(result)
-                // Buffer.append<Text>(buffer, result);
             };
         };
- // Retrieve the updated results as an array to return
+
         let resultsArray = switch (userResultsMap.get(caller)) {
             case (null) { [] };
             case (?buffer) { Buffer.toArray(buffer) };
         };
 
         return #ok({ id = caller; results = resultsArray });
-    // }
-        // return #ok({ id = caller; results = ["fake result"] });k
 
     };
 
-    public query ({ caller }) func getUserResults() : async Result.Result<{ id : Nat; results : [Text] }, Text> {
-        return #ok({ id = 123; results = ["fake result"] });
-    };
+    public query ({ caller }) func getUserResults() : async Result.Result<{ id : Principal; results : [Text] }, Text> {
+
+
+        switch (userResultsMap.get(caller)) {
+            case (null) {
+                return #err("No results found for user.");
+            };
+            case (?buffer) {
+                return #ok({ id = caller; results = Buffer.toArray(buffer) });
+            };
+        }
+  };
 
     public func outcall_ai_model_for_sentiment_analysis(paragraph : Text) : async Result.Result<{ paragraph : Text; result : Text }, Text> {
         let host = "api-inference.huggingface.co";

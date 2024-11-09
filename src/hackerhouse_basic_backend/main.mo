@@ -16,17 +16,17 @@ actor {
     public query ({ caller }) func getUserProfile() : async Result.Result<{ id : Nat; name : Text }, Text> {
 
         var userProfile : Text = "No profile found";
-        Debug.print(debug_show(caller));
-        // let userProfileResult = userProfileMap.get(caller);
-        // switch (userProfileResult) {
-        //     case (null) {
-        //         userProfile := "No profile found";
-        //     };
-        //     case (?userProfileFound) {
-        //         userProfile := userProfileFound;
-        //     };
-        // };
-        return #ok({ id = 123; name = "test" });
+        // Debug.print(debug_show caller);
+        let userProfileResult = userProfileMap.get(caller);
+        switch (userProfileResult) {
+            case (null) {
+                userProfile := "No profile found";
+            };
+            case (?userProfileFound) {
+                userProfile := userProfileFound;
+            };
+        };
+        return #ok({ id = caller; name = userProfileResult});
     };
 
     public shared ({ caller }) func setUserProfile(name : Text) : async Result.Result<{ id : Nat; name : Text }, Text> {

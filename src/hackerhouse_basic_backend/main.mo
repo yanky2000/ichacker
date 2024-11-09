@@ -6,18 +6,16 @@ import Blob "mo:base/Blob";
 import Text "mo:base/Text";
 import Cycles "mo:base/ExperimentalCycles";
 import Principal "mo:base/Principal";
-import Map "mo:map/Map";
-import Debug "mo:base/Debug";
+import HashMap "mo:base/HashMap";
 
 actor {
-    stable var currentIndex : Nat = 0;
-    let userProfileMap = Map.new<Principal, Text>();
+    let map = HashMap.HashMap<Principal, Text>(5, Principal.equal, Principal.hash);
 
-    public query ({ caller }) func getUserProfile() : async Result.Result<{ id : Nat; name : Text }, Text> {
+    public query ({ caller }) func getUserProfile() : async Result.Result<{ id : Principal; name : Text }, Text> {
 
         var userProfile : Text = "No profile found";
-        // Debug.print(debug_show caller);
-        let userProfileResult = userProfileMap.get(caller);
+  
+        let userProfileResult = map.get(caller);
         switch (userProfileResult) {
             case (null) {
                 userProfile := "No profile found";
@@ -26,11 +24,13 @@ actor {
                 userProfile := userProfileFound;
             };
         };
-        return #ok({ id = caller; name = userProfileResult});
+        return #ok({ id = caller; name = userProfile});
     };
 
-    public shared ({ caller }) func setUserProfile(name : Text) : async Result.Result<{ id : Nat; name : Text }, Text> {
-        return #ok({ id = 123; name = "test" });
+    public shared ({ caller }) func setUserProfile(name : Text) : async Result.Result<{ id : Principal; name : Text }, Text> {
+        let result = map.put(caller, name);
+        // todo: extend return type to let user know if it's an update request
+        return #ok({ id = caller; name = name });
     };
 
     public shared ({ caller }) func addUserResult(result : Text) : async Result.Result<{ id : Nat; results : [Text] }, Text> {

@@ -5,11 +5,25 @@ import Array "mo:base/Array";
 import Blob "mo:base/Blob";
 import Text "mo:base/Text";
 import Cycles "mo:base/ExperimentalCycles";
+import Principal "mo:base/Principal";
+import Map "mo:map/Map";
 
 actor {
     stable var currentIndex : Nat = 0;
+    let userProfileMap = Map.new<Principal, Text>();
 
     public query ({ caller }) func getUserProfile() : async Result.Result<{ id : Nat; name : Text }, Text> {
+
+        var userProfile : Text = "No profile found";
+        let userProfileResult = userProfileMap.get(caller);
+        switch (userProfileResult) {
+            case (null) {
+                userProfile := "No profile found";
+            };
+            case (?userProfileFound) {
+                userProfile := userProfileFound;
+            };
+        };
         return #ok({ id = 123; name = "test" });
     };
 

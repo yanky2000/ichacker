@@ -7,6 +7,7 @@ import Text "mo:base/Text";
 import Cycles "mo:base/ExperimentalCycles";
 import Principal "mo:base/Principal";
 import Map "mo:map/Map";
+import Debug "mo:base/Debug";
 
 actor {
     stable var currentIndex : Nat = 0;
@@ -15,15 +16,16 @@ actor {
     public query ({ caller }) func getUserProfile() : async Result.Result<{ id : Nat; name : Text }, Text> {
 
         var userProfile : Text = "No profile found";
-        let userProfileResult = userProfileMap.get(caller);
-        switch (userProfileResult) {
-            case (null) {
-                userProfile := "No profile found";
-            };
-            case (?userProfileFound) {
-                userProfile := userProfileFound;
-            };
-        };
+        Debug.print(debug_show(caller));
+        // let userProfileResult = userProfileMap.get(caller);
+        // switch (userProfileResult) {
+        //     case (null) {
+        //         userProfile := "No profile found";
+        //     };
+        //     case (?userProfileFound) {
+        //         userProfile := userProfileFound;
+        //     };
+        // };
         return #ok({ id = 123; name = "test" });
     };
 

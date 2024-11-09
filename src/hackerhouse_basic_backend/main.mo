@@ -7,6 +7,8 @@ import Text "mo:base/Text";
 import Cycles "mo:base/ExperimentalCycles";
 
 actor {
+    stable var currentIndex : Nat = 0;
+
     public query ({ caller }) func getUserProfile() : async Result.Result<{ id : Nat; name : Text }, Text> {
         return #ok({ id = 123; name = "test" });
     };

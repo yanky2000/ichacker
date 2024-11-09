@@ -6,20 +6,19 @@ import Blob "mo:base/Blob";
 import Text "mo:base/Text";
 import Cycles "mo:base/ExperimentalCycles";
 import Principal "mo:base/Principal";
-import HashMap "mo:base/HashMap";
-import Buffer "mo:base/Buffer";
 import Map "mo:map/Map";
 import {phash} "mo:map/Map";
+import Vector "mo:vector";
 
 actor {
     let userMap = Map.new<Principal, Text>();
-    let userResultsMap : HashMap.HashMap<Principal, Buffer.Buffer<Text>> = HashMap.HashMap<Principal, Buffer.Buffer<Text>>(0, Principal.equal, Principal.hash);
+    let userResultsVectorMap = Map.new<Principal, Vector.Vector<Text>>();
 
     public query ({ caller }) func getUserProfile() : async Result.Result<{ id : Principal; name : Text }, Text> {
 
         var userProfile : Text = "";
         let userProfileResult = Map.get(userMap, phash, caller);
-
+        
         switch (userProfileResult) {
             case (null) {
                 userProfile := "No profile found";
@@ -45,39 +44,35 @@ actor {
 
 
     public shared ({ caller }) func addUserResult(result : Text) : async Result.Result<{ id : Principal; results : [Text] }, Text> {               
+      
         // Retrieve the existing results for the caller, if any
-        let existingResults = userResultsMap.get(caller);
+        let isUserExist = Map.get(userMap, phash, caller);
+        if(isUserExist == null) { return #err("User doesn't exist")};
 
-        switch (existingResults) {
+        let results = switch (Map.get(userResultsVectorMap, phash, caller)) {
             case (null) {
-                let buffer = Buffer.Buffer<Text>(0); // Initialize an empty buffer
-                buffer.add(result); // Add the result to the buffer
-                userResultsMap.put(caller, buffer);  // Store the buffer in the map
+                Vector.new<Text>();
             };
-            case (?buffer) {
-                // A buffer already exists, so just add the result to it
-                buffer.add(result)
+            case (?existingResults) {
+                existingResults;      
             };
         };
-
-        let resultsArray = switch (userResultsMap.get(caller)) {
-            case (null) { [] };
-            case (?buffer) { Buffer.toArray(buffer) };
-        };
-
-        return #ok({ id = caller; results = resultsArray });
-
+        Vector.add(results,result);
+        Map.set(userResultsVectorMap, phash, caller, results);
+        return #ok({id= caller; results=Vector.toArray(results)});
     };
 
     public query ({ caller }) func getUserResults() : async Result.Result<{ id : Principal; results : [Text] }, Text> {
-        switch (userResultsMap.get(caller)) {
+        let results = switch (Map.get(userResultsVectorMap, phash, caller)) {
             case (null) {
-                return #err("No results found for user.");
+                return #err("No results found for user " # Principal.toText(caller));
             };
-            case (?buffer) {
-                return #ok({ id = caller; results = Buffer.toArray(buffer) });
+            case (?found) {
+                found;
             };
-        }
+            
+        };
+        return #ok({ id = caller; results = Vector.toArray(results) });
   };
 
     public func outcall_ai_model_for_sentiment_analysis(paragraph : Text) : async Result.Result<{ paragraph : Text; result : Text }, Text> {

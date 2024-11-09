@@ -8,16 +8,18 @@ import Cycles "mo:base/ExperimentalCycles";
 import Principal "mo:base/Principal";
 import HashMap "mo:base/HashMap";
 import Buffer "mo:base/Buffer";
+import Map "mo:map/Map";
+import {phash} "mo:map/Map";
 
 actor {
-    let userProfileMap = HashMap.HashMap<Principal, Text>(5, Principal.equal, Principal.hash);
+    let userMap = Map.new<Principal, Text>();
     let userResultsMap : HashMap.HashMap<Principal, Buffer.Buffer<Text>> = HashMap.HashMap<Principal, Buffer.Buffer<Text>>(0, Principal.equal, Principal.hash);
 
     public query ({ caller }) func getUserProfile() : async Result.Result<{ id : Principal; name : Text }, Text> {
 
-        var userProfile : Text = "No profile found";
-  
-        let userProfileResult = userProfileMap.get(caller);
+        var userProfile : Text = "";
+        let userProfileResult = Map.get(userMap, phash, caller);
+
         switch (userProfileResult) {
             case (null) {
                 userProfile := "No profile found";
@@ -30,8 +32,14 @@ actor {
     };
 
     public shared ({ caller }) func setUserProfile(name : Text) : async Result.Result<{ id : Principal; name : Text }, Text> {
-        let result = userProfileMap.put(caller, name);
-        // todo: extend return type to let user know if it's an update request
+        switch (Map.get(userMap, phash, caller)) {
+            case (?_) {
+                return #err("User " # Principal.toText(caller) # " already has profile");
+            };
+            case (null) {
+                Map.set(userMap, phash, caller, name); 
+            };
+        };
         return #ok({ id = caller; name = name });
     };
 

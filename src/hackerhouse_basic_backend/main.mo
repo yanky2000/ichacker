@@ -36,8 +36,7 @@ actor {
     };
 
 
-    public shared ({ caller }) func addUserResult(result : Text) : async Result.Result<{ id : Principal; results : [Text] }, Text> {
-               
+    public shared ({ caller }) func addUserResult(result : Text) : async Result.Result<{ id : Principal; results : [Text] }, Text> {               
         // Retrieve the existing results for the caller, if any
         let existingResults = userResultsMap.get(caller);
 
@@ -63,8 +62,6 @@ actor {
     };
 
     public query ({ caller }) func getUserResults() : async Result.Result<{ id : Principal; results : [Text] }, Text> {
-
-
         switch (userResultsMap.get(caller)) {
             case (null) {
                 return #err("No results found for user.");

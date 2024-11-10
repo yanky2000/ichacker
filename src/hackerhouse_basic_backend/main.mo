@@ -45,7 +45,6 @@ actor {
 
     public shared ({ caller }) func addUserResult(result : Text) : async Result.Result<{ id : Principal; results : [Text] }, Text> {               
       
-        // Retrieve the existing results for the caller, if any
         let isUserExist = Map.get(userMap, phash, caller);
         if(isUserExist == null) { return #err("User doesn't exist")};
 
@@ -88,7 +87,10 @@ actor {
         ];
 
         let body_json : Text = "{ \"inputs\" : \" " # paragraph # "\" }";
-
+        // return #ok({
+        //     paragraph = paragraph;
+        //     result = paragraph
+        // });
         let text_response = await make_post_http_outcall(host, path, headers, body_json);
 
         // TODO
@@ -162,7 +164,7 @@ actor {
         let http_request : Types.HttpRequestArgs = {
             url = url;
             max_response_bytes = null; //optional for request
-            headers = request_headers;
+            headers = merged_headers;
             // note: type of `body` is ?[Nat8] so it is passed here as "?request_body_as_nat8" instead of "request_body_as_nat8"
             body = ?request_body_as_nat8;
             method = #post;
@@ -178,7 +180,7 @@ actor {
         //The way Cycles.add() works is that it adds those cycles to the next asynchronous call
         //"Function add(amount) indicates the additional amount of cycles to be transferred in the next remote call"
         //See: https://internetcomputer.org/docs/current/references/ic-interface-spec/#ic-http_request
-        Cycles.add<system>(230_949_972_000);
+        Cycles.add<system>(500_230_949_972_000);
 
         //4. MAKE HTTPS REQUEST AND WAIT FOR RESPONSE
         //Since the cycles were added above, we can just call the IC management canister with HTTPS outcalls below

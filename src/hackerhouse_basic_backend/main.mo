@@ -6,9 +6,11 @@ import Blob "mo:base/Blob";
 import Text "mo:base/Text";
 import Cycles "mo:base/ExperimentalCycles";
 import Principal "mo:base/Principal";
+import Debug "mo:base/Debug";
 import Map "mo:map/Map";
 import {phash} "mo:map/Map";
 import Vector "mo:vector";
+import {JSON} "mo:serde";
 
 actor {
     let userMap = Map.new<Principal, Text>();
@@ -96,10 +98,30 @@ actor {
         // TODO
         // Install "serde" package and parse JSON
         // calculate highest sentiment and return it as a result
+        let blob = switch(JSON.fromText(text_response, null)) {
+            case(#ok(b)) {b};
+            case(_) { return #err("Error decoding JSON " # text_response)};
+        };
+
+        let results: ?[[{label_: Text; score: Float}]] = from_candid(blob);
+        let parsed_results = switch(results) {
+            case(null) { return #err("Error decoding JSON " # text_response)};
+            case(?value) {value[0]};
+        };
+       
+
+        var highest_score = 0.0;
+        var best_sentiment = "";
+        for (result in parsed_results.vals()) {
+            if (result.score > highest_score) {
+                highest_score := result.score;
+                best_sentiment := result.label_;
+            }
+        };
 
         return #ok({
             paragraph = paragraph;
-            result = text_response;
+            result = best_sentiment;
         });
     };
 

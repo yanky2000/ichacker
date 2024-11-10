@@ -1,16 +1,16 @@
 import { useState } from "react";
-import NfidLogin from "./components/NfidLogin";
+// import NfidLogin from "./components/NfidLogin";
 
 export function ICForm({backendActor}) {
   // const [backendActor, setBackendActor] = useState();
-  const [userId, setUserId] = useState();
-  const [userName, setUserName] = useState();
+  // const [userId, setUserId] = useState();
+  // const [userName, setUserName] = useState();
 
 
   function handleAddUserResults(event) {
     event.preventDefault();
-    const name = event.target.elements.name.value;
-    backendActor.addUserResults(name).then((response) => {
+    const results = event.target.elements.results.value;
+    backendActor.addUserResults(result).then((response) => {
       if (response.ok) {
         console.log(response.ok);
         // setUserId(response.ok.id.toString());
@@ -26,7 +26,7 @@ export function ICForm({backendActor}) {
   }
 
   return (
-    <main>
+    <div>
       {/* <img src="/logo2.svg" alt="DFINITY logo" /> */}
       {/* <br />
       <br /> */}
@@ -39,15 +39,15 @@ export function ICForm({backendActor}) {
       {backendActor && (
         <>
           <form action="#" onSubmit={handleAddUserResults}>
-            <label htmlFor="results">Enter your results: &nbsp;</label>
-            <input id="results" alt="Results" type="text" />
+            <label htmlFor="result">Enter your results: &nbsp;</label>
+            <input id="result" alt="Results" type="text" />
             <button type="submit">Save</button>
           </form>
           {/* {userId && <section className="response">{userId}</section>}
           {userName && <section className="response">{userName}</section>} */}
         </>
       )}
-    </main>
+    </div>
   );
 }
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import NfidLogin from "./components/NfidLogin";
+import {ICForm} from './ICForm'
 
 function App() {
     const [backendActor, setBackendActor] = useState();
@@ -14,6 +15,7 @@ function App() {
                 setUserId(response.ok.id.toString());
                 setUserName(response.ok.name);
             } else if (response.err) {
+              
                 setUserId(response.err);
             } else {
                 console.error(response);
